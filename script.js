@@ -1,23 +1,28 @@
 // Variables
-let balance = 0;
+let balance = 5; // Start with an initial balance of $5
 let score = 0;
-const scenarios = [
-    { text: "You get $20 for your birthday.", change: 20 },
+let negativeCount = 0; // Track number of initial negative scenarios shown
+let availableScenarios = [
     { text: "You spend $15 on a new game.", change: -15 },
-    { text: "You earn $10 doing chores.", change: 10 },
     { text: "You donate $5 to charity.", change: -5 },
-    { text: "You find $12 on the ground.", change: 12 },
     { text: "You lose $8 from your wallet.", change: -8 },
-    { text: "You win a $25 prize in a competition.", change: 25 },
+    { text: "Unexpected expense: car repairs cost $35.", change: -35 },
+    { text: "You have to pay $40 to fix a broken window.", change: -40 },
+    { text: "You find $5 but then lose $3 from your wallet.", change: 2 },
+    { text: "You pay a $20 fine.", change: -20 },
     { text: "You buy lunch for $7.", change: -7 },
+    { text: "You get $20 for your birthday.", change: 20 },
+    { text: "You earn $10 doing chores.", change: 10 },
+    { text: "You find $12 on the ground.", change: 12 },
+    { text: "You win a $25 prize in a competition.", change: 25 },
     { text: "You get $30 for helping your neighbour.", change: 30 },
     { text: "You lend $10 to a friend.", change: -10 },
     { text: "You receive $50 from a family member.", change: 50 },
-    { text: "You pay a $20 fine.", change: -20 },
     { text: "You earn $18 babysitting.", change: 18 },
     { text: "You buy a book for $12.", change: -12 },
     { text: "You receive a refund of $15.", change: 15 },
 ];
+let usedScenarios = [];
 
 // DOM Elements
 const scenarioEl = document.getElementById('scenario');
@@ -30,8 +35,31 @@ const numberLineEl = document.getElementById('number-line');
 
 // Functions
 function generateScenario() {
-    const randomIndex = Math.floor(Math.random() * scenarios.length);
-    const scenario = scenarios[randomIndex];
+    let scenario;
+
+    // First three scenarios should be negative
+    if (negativeCount < 3) {
+        const negativeScenarios = availableScenarios.filter(s => s.change < 0);
+        const randomIndex = Math.floor(Math.random() * negativeScenarios.length);
+        scenario = negativeScenarios[randomIndex];
+        negativeCount++;
+    } else {
+        // Reset scenarios if all have been used
+        if (availableScenarios.length === 0) {
+            availableScenarios = usedScenarios;
+            usedScenarios = [];
+        }
+
+        // Select a random scenario from availableScenarios
+        const randomIndex = Math.floor(Math.random() * availableScenarios.length);
+        scenario = availableScenarios[randomIndex];
+    }
+
+    // Move selected scenario to usedScenarios and remove from availableScenarios
+    usedScenarios.push(scenario);
+    availableScenarios = availableScenarios.filter(s => s !== scenario);
+
+    // Update scenario text
     scenarioEl.textContent = scenario.text;
     return scenario;
 }
@@ -88,6 +116,7 @@ function checkAnswer(scenario) {
 }
 
 // Initialize Game
+balanceEl.textContent = `$${balance}`; // Display initial balance
 updateNumberLine();
 const initialScenario = generateScenario();
 submitBtn.onclick = () => checkAnswer(initialScenario);
